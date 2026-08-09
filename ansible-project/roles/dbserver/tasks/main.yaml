@@ -1,0 +1,51 @@
+---
+- name: Register MongoDB cryptographic signing key
+  apt_key:
+    url: "https://mongodb.org{{ mongodb_version }}.asc"
+    state: present
+
+- name: Configure official MongoDB apt package tracking source
+  apt_repository:
+    repo: "deb [ arch=amd64,arm64 ] https://mongodb.org jammy/mongodb-org/{{ mongodb_version }} multiverse"
+    state: present
+    filename: mongodb-org
+
+- name: Install database binaries
+  apt:
+    name: mongodb-org
+    state: present
+    update_cache: yes
+
+- name: Apply security-compliant MongoDB network configuration mapping
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart MongoDB
+
+- name: Verify localized MongoDB system service persistence execution status
+  service:
+    name: mongod
+    state: started
+    enabled: yes
+
+- name: Flush handlers to apply configuration before user creation
+  meta: flush_handlers
+
+- name: Provision administrative authentication metrics inside production database
+  mongodb_user:
+    database: "{{ mongodb_db_name }}"
+    name: "{{ mongodb_user }}"
+    password: "{{ mongodb_pass }}"
+    roles: 
+      - { db: "{{ mongodb_db_name }}", role: "dbOwner" }
+    state: present
+
+- name: Configure state-specific database node firewall profiles
+  ufw:
+    rule: allow
+    src: '10.0.0.0/16' # Restrict to internal application VPC subnet block
+    port: '27017'
+    proto: tcp

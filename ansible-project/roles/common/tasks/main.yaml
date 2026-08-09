@@ -1,0 +1,43 @@
+---
+- name: Synchronize Apt package indexes
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Audit open network configurations (UFW)
+  apt:
+    name: ufw
+    state: present
+
+- name: Reset UFW rules to standard secure baseline
+  ufw:
+    state: reset
+
+- name: Establish base inbound firewall exceptions
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+
+- name: Enforce global incoming deny status
+  ufw:
+    direction: in
+    policy: deny
+
+- name: Enable system firewall daemon
+  ufw:
+    state: enabled
+
+- name: De-authorize unsafe SSH password access
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: Restart SSH
+
+- name: Terminate root SSH session capacity
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: Restart SSH

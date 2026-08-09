@@ -1,0 +1,80 @@
+---
+- name: Obtain NodeJS setup script payload
+  get_url:
+    url: "https://nodesource.com"
+    dest: "/tmp/nodejs_setup.sh"
+    mode: '0755'
+
+- name: Execute NodeSource compilation updates
+  command: "/tmp/nodejs_setup.sh"
+  args:
+    creates: "/etc/apt/sources.list.d/nodesource.list"
+
+- name: Install target web server dependency runtimes
+  apt:
+    name:
+      - nodejs
+      - git
+    state: present
+    update_cache: yes
+
+- name: Clean existing application directory structure
+  file:
+    path: "{{ app_dest_dir }}"
+    state: absent
+
+- name: Initialize deployment repository checkout operations
+  git:
+    repo: "{{ app_repo_url }}"
+    dest: "{{ app_dest_dir }}"
+    version: "{{ app_version }}"
+
+- name: Global PM2 package deployment instantiation
+  npm:
+    name: pm2
+    global: yes
+    state: present
+
+- name: Install Express API tier software stack requirements
+  npm:
+    path: "{{ app_dest_dir }}/backend"
+    state: present
+
+- name: Construct backend persistent environment runtime variable array
+  template:
+    src: backend_env.j2
+    dest: "{{ app_dest_dir }}/backend/.env"
+    mode: '0600'
+
+- name: Compile and install front-end static dependencies
+  npm:
+    path: "{{ app_dest_dir }}/frontend"
+    state: present
+
+- name: Generate frontend client compilation environment layout
+  template:
+    src: frontend_env.j2
+    dest: "{{ app_dest_dir }}/frontend/.env"
+    mode: '0644'
+
+- name: Build optimization assets for execution
+  command:
+    cmd: npm run build
+    chdir: "{{ app_dest_dir }}/frontend"
+
+- name: Terminate preexisting backend operations running under PM2
+  command: pm2 delete all
+  ignore_errors: yes
+
+- name: Launch production background threads via execution daemon
+  command:
+    cmd: pm2 start server.js --name "mern-backend"
+    chdir: "{{ app_dest_dir }}/backend"
+  environment:
+    NODE_ENV: production
+
+- name: Open edge ingress framework pathways within system configurations
+  ufw:
+    rule: allow
+    port: "{{ app_port }}"
+    proto: tcp

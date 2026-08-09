@@ -1,0 +1,4 @@
+---
+app_repo_url: "https://github.com"
+app_version: "main"
+app_dest_dir: "/var/www/mern-app"
