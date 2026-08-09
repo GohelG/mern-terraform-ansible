@@ -1,0 +1,14 @@
+[Unit]
+Description=Node.js Application Backend Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/var/www/app
+EnvironmentFile=/var/www/app/.backend.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

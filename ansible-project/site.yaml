@@ -1,17 +1,17 @@
 ---
-- name: Apply Base OS Hardening to All Target Hosts
-  hosts: mern
+- name: Apply common configurations to all nodes
+  hosts: all
   become: true
   roles:
     - common
 
-- name: Provision and Secure Database Topology
+- name: Setup and configure MongoDB database nodes
   hosts: dbservers
   become: true
   roles:
     - dbserver
 
-- name: Provision, Build and Daemonize Web Tier
+- name: Deploy application environment to web nodes
   hosts: webservers
   become: true
   roles:

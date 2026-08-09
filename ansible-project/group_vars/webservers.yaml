@@ -1,5 +1,4 @@
 ---
-node_version: "node_20.x"
-app_port: 5000
-db_uri: "mongodb://app_user:Secure_DB_Password_2026@10.0.2.99:27017/mern_db?authSource=mern_db"
-react_api_url: "http://54.210.43.12:5000"
+backend_port: 5000
+frontend_port: 80
+db_connection_string: "mongodb://db-node-01:27017/prod_db"

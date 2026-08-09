@@ -1,51 +1,40 @@
 ---
-- name: Register MongoDB cryptographic signing key
+- name: Install repository key distribution dependency
+  apt:
+    name: gnupg
+    state: present
+
+- name: Fetch and import official MongoDB GPG key
   apt_key:
-    url: "https://mongodb.org{{ mongodb_version }}.asc"
+    url: https://mongodb.org
     state: present
 
-- name: Configure official MongoDB apt package tracking source
+- name: Add official MongoDB repository source entry
   apt_repository:
-    repo: "deb [ arch=amd64,arm64 ] https://mongodb.org jammy/mongodb-org/{{ mongodb_version }} multiverse"
+    repo: "deb [ arch=amd64,arm64 ] https://mongodb.org {{ ansible_distribution_release }}/mongodb-org/7.0 multiverse"
     state: present
-    filename: mongodb-org
 
-- name: Install database binaries
+- name: Install official MongoDB server packages
   apt:
     name: mongodb-org
     state: present
     update_cache: yes
 
-- name: Apply security-compliant MongoDB network configuration mapping
+- name: Configure MongoDB via configuration template
   template:
     src: mongod.conf.j2
     dest: /etc/mongod.conf
     owner: root
     group: root
     mode: '0644'
-  notify: Restart MongoDB
+  notify: restart mongodb service
 
-- name: Verify localized MongoDB system service persistence execution status
-  service:
-    name: mongod
-    state: started
-    enabled: yes
-
-- name: Flush handlers to apply configuration before user creation
-  meta: flush_handlers
-
-- name: Provision administrative authentication metrics inside production database
-  mongodb_user:
-    database: "{{ mongodb_db_name }}"
-    name: "{{ mongodb_user }}"
-    password: "{{ mongodb_pass }}"
-    roles: 
-      - { db: "{{ mongodb_db_name }}", role: "dbOwner" }
-    state: present
-
-- name: Configure state-specific database node firewall profiles
+- name: Permit database access explicitly from web nodes
   ufw:
     rule: allow
-    src: '10.0.0.0/16' # Restrict to internal application VPC subnet block
-    port: '27017'
+    from_ip: "{{ item }}"
+    port: "{{ mongo_port }}"
     proto: tcp
+  loop:
+    - 10.0.1.4
+    - 40.114.25.163

@@ -1,5 +1,5 @@
 ---
-- name: Restart SSH
+- name: restart common logging service
   service:
-    name: ssh
+    name: rsyslog
     state: restarted

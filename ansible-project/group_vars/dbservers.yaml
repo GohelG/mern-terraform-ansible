@@ -1,6 +1,3 @@
 ---
-mongodb_version: "7.0"
-mongodb_bind_ip: "127.0.0.1,10.0.2.99" 
-mongodb_db_name: "mern_db"
-mongodb_user: "app_user"
-mongodb_pass: "Secure_DB_Password_2026"
+mongo_port: 27017
+mongo_bind_ip: 0.0.0.0
